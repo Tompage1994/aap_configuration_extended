@@ -113,6 +113,8 @@ releases:
     - filetree_create_workflow_job_templates.yaml
     - readme_req.yml
     release_date: '2025-04-17'
+  1.0.1:
+    release_date: '2025-06-06'
   1.1.0:
     changes:
       bugfixes:

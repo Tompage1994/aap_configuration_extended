@@ -9,7 +9,7 @@ on:
 jobs:
   release:
     name: Release Collection to galaxy/AH
-    uses: "redhat-cop/ansible_collections_tooling/.github/workflows/release_pipeline_dual_crc.yml@test/pr-merge"
+    uses: "Tompage1994/ansible_collections_tooling/.github/workflows/release_pipeline_dual_crc.yml@test/pr-merge"
     with:
       # Galaxy Publish
       collection_namespace_1: infra

@@ -24,6 +24,9 @@ Bugfixes
 - filetree_create no longer has issue with strings like 123-123-123 in survey and extra vars
 - fix a truthy value at the survey for the workflow job templates. Set it to lowercase.
 
+v1.0.1
+======
+
 v1.0.0
 ======
 

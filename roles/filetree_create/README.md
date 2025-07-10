@@ -25,6 +25,8 @@ The following variables are required for that role to work properly:
 | `output_path` | `/tmp/filetree_output` | yes | str | The path to the output directory where all the generated `yaml` files with the corresponding Objects as code will be written to. |
 | `input_tag` | `['all']` | no | List of Strings | The tags which are applied to the 'sub-roles'. If 'all' is in the list (the default value) then all roles will be called.  Valid tags can be found under `vars/valid_tags` |
 | `flatten_output` | N/A | no | bool | Whether to flatten the output in single files per each object type instead of the normal exportation structure |
+| `secrets_as_variables` | N/A | no | bool | Whether to export the secrets as variables that can be populated from existing variables/files. An example: `vaulted_eda_credentials_my_eda_credential_password`, that follows the syntax: `<secrets_as_variables_prefix>_<object_type>_<object_name>_<field_name>` |
+| `secrets_as_variables_prefix` | vaulted | no | str | The prefix to use for the variables defined by `secrets_as_variables` feature. |
 | `show_encrypted` | N/A | no | bool | Whether to remove the string '\$encrypted\$' in credentials output (not the actual credential value) |
 | `omit_id` | N/A | no | bool | Whether to create output files without objects id.|
 | `organization`| N/A | no | str | Default organization for all objects that have not been set in the source controller.|
@@ -246,6 +248,95 @@ This example will export all object but some with modifications:
 
 ...
 ```
+
+## Usage example for the `secrets_as_variables` feature
+
+To let the credentials and the users to be exported and imported 'as is', without any modification, the sensitive data (that can't be exported through the API) can be abstracted to extra vars (or variable's file) and vaulted. Those variables can be referenced at the original objects' code, so they can be imported without any manual modification. To clarify the described scenario, the following output shows the exported object for a gateway user, using the `secrets_as_variable` feature:
+
+Sample playbook:
+
+```yaml
+---
+- name: Filetree Create Test
+  hosts: all
+  connection: local
+  gather_facts: false
+  vars:
+    aap_username: "{{ vault_aap_username | default(lookup('env', 'CONTROLLER_USERNAME')) }}"
+    aap_password: "{{ vault_aap_password | default(lookup('env', 'CONTROLLER_PASSWORD')) }}"
+    aap_hostname: "{{ vault_aap_hostname | default(lookup('env', 'CONTROLLER_HOST')) }}"
+    aap_validate_certs: "{{ vault_aap_validate_certs | default(lookup('env', 'CONTROLLER_VERIFY_SSL')) }}"
+    output_path: /tmp/filetree_output_25
+    # Let the secrets to be defined externally (and vaulted) through well known variables
+    secrets_as_variables: true
+
+  pre_tasks:
+    - name: "Setup authentication (block)"
+      no_log: "{{ controller_configuration_filetree_create_secure_logging }}"
+      when: aap_oauthtoken is not defined
+      tags:
+        - always
+      block:
+        - name: "Get the Authentication Token for the future requests"
+          ansible.builtin.uri:
+            url: "https://{{ aap_hostname }}/api/gateway/v1/tokens/"
+            user: "{{ aap_username }}"
+            password: "{{ aap_password }}"
+            method: POST
+            force_basic_auth: true
+            validate_certs: "{{ aap_validate_certs }}"
+            status_code: 201
+          register: authtoken_res
+
+        - name: "Set the oauth token to be used since now"
+          ansible.builtin.set_fact:
+            aap_oauthtoken: "{{ authtoken_res.json.token }}"
+            aap_oauthtoken_url: "{{ authtoken_res.json.url }}"
+
+  roles:
+    - infra.aap_configuration_extended.filetree_create
+
+  post_tasks:
+    - name: "Delete the Authentication Token used"
+      ansible.builtin.uri:
+        url: "https://{{ aap_hostname }}{{ aap_oauthtoken_url }}"
+        user: "{{ aap_username }}"
+        password: "{{ aap_password }}"
+        method: DELETE
+        force_basic_auth: true
+        validate_certs: "{{ aap_validate_certs }}"
+        status_code: 204
+      when: aap_oauthtoken_url is defined
+...
+```
+
+Generated file: `/tmp/filetree_output_25/gateway_users.yaml`
+
+```yaml
+---
+aap_user_accounts:
+  - username: "test_user"
+    email: ""
+    first_name: ""
+    last_name: ""
+    password: "{{ vaulted_gateway_users_test_user_password }}"
+    is_superuser: "False"
+    authenticators: []
+    authenticator_uid: ""
+...
+```
+
+The variable `vaulted_gateway_users_test_user_password` can be defined in a third file:
+
+`~/vaulted_credentials.yaml`:
+
+```yaml
+vaulted_gateway_users_test_user_password: "SuperSecretPassword"
+```
+
+That file can be encrypted using `ansible-vault`.
+
+The import process can be executed directly, using that file with the extra_vars option: `ansible-playbook -e@~/vaulted_credentials.yaml`.
 
 ## License
 

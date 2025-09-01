@@ -175,6 +175,7 @@ releases:
       minor_changes:
       - Let the sensitive data of the credentials and users to be defined externally
         through a well know variables
+      - Use correct API endpoint when connecting to AAP 2.5 when determining super user privileges
     fragments:
     - filetree_create_controller_applications.yaml
     - filetree_create_controller_credential_types.yaml
@@ -186,4 +187,5 @@ releases:
     - filetree_create_issue136.yaml
     - new_role_upgrade_config.yml
     - update_collections.yaml
+    - 137-fix-use_correct_api_endpoint_superuser
     release_date: '2025-09-01'

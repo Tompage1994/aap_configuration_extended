@@ -17,6 +17,7 @@ Minor Changes
 -------------
 
 - Let the sensitive data of the credentials and users to be defined externally through a well know variables
+- Use correct API endpoint when connecting to AAP 2.5 when determining super user privileges
 
 Breaking Changes / Porting Guide
 --------------------------------

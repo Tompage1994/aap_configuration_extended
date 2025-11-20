@@ -6,7 +6,7 @@ controller_settings:
 {{ key | indent(width=6, first=True) }}:
 {{ value | to_nice_yaml(indent=2, sort_keys=false) | indent(width=8, first=True) }}
 {%   elif key is match('AUTOMATION_ANALYTICS_LAST_ENTRIES') %}
-{{ key | indent(width=6, first=True) }}: {{ value | from_json }}
+{{ key | indent(width=6, first=True) }}: "{{ value | from_json }}"
 {%   else %}
 {{ key | indent(width=6, first=True) }}: "{{ value | replace('True', 'true') | replace('False', 'false') | replace('None', 'null') }}"
 {%   endif %}

@@ -273,7 +273,7 @@ releases:
     - object_diff.yml
     - secrets_as_variables_changes.yml
     release_date: '2025-12-11'
-  4.0.2:
+  4.0.1:
     changes:
       bugfixes:
       - infra.aap_configuration_extended.filetree_create now generates a dict instead

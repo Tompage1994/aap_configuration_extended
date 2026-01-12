@@ -7,6 +7,9 @@ infra.aap\_configuration\_extended Release Notes
 v4.0.2
 ======
 
+v4.0.1
+======
+
 Bugfixes
 --------
 
